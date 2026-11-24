@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GTU Digital Fundamentals 3130704 K-map minimizer: 2 to 4 variables, don&#x27;t cares, minimal SOP</title>
+<meta name="description" content="K-map sums are free marks if your groups are right, and a silent zero if one minterm is left out. Minterms aur don&#x27;t cares daalo, the page draws the">
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.5}input,textarea,select{margin:.3rem 0;padding:.3rem;width:min(100%,360px);box-sizing:border-box}textarea{width:min(100%,520px);min-height:6rem;font-family:ui-monospace,monospace}#out{font-weight:bold;margin-top:1rem;white-space:pre-wrap;font-family:ui-monospace,monospace;overflow-x:auto}</style></head><body>
+<h1>GTU Digital Fundamentals 3130704 K-map minimizer: 2 to 4 variables, don&#x27;t cares, minimal SOP</h1>
+<p>K-map sums are free marks if your groups are right, and a silent zero if one minterm is left out. Minterms aur don&#x27;t cares daalo, the page draws the map in Gray code order, lists the prime implicants, marks the essential ones and gives one minimal SOP. Use it to check your hand answer, not to skip the map. Practice values are my own.</p>
+<h2>Tool</h2>
+<label>Variables<br><select id="n"><option>2</option><option>3</option><option selected>4</option></select></label><br>
+<label>Minterms<br><input id="m" value="0, 1, 2, 5, 8, 9, 10"></label><br>
+<label>Don't cares (optional)<br><input id="d" value=""></label><br>
+<button type="button" onclick="go()">Show</button>
+<div id="out"></div>
+<h2>Facts used</h2>
+<ul><li>Rows and columns go in Gray code order 00, 01, 11, 10, so neighbours differ in one bit. That is why the edges wrap around.</li><li>A group must have 1, 2, 4, 8 or 16 cells, and must be a rectangle (wrap-around allowed).</li><li>A prime implicant is a group that cannot be made bigger. An essential prime implicant is the only one covering some minterm. Essentials always go in the answer.</li><li>Don&#x27;t cares (d) may be used to make groups bigger but never need to be covered.</li><li>Bigger group means fewer literals: an 8-cell group in 4 variables is a single literal.</li><li>Default practice set: F(A, B, C, D) = sum m(0, 1, 2, 5, 8, 9, 10) minimizes to B&#x27;C&#x27; + B&#x27;D&#x27; + A&#x27;C&#x27;D.</li></ul>
+<h2>Galti mat karna</h2>
+<ul><li>Write the cell numbers inside the map first (for 4 variables the third column is 3, 7, 15, 11 and the fourth is 2, 6, 14, 10). Most wrong answers come from a wrongly numbered map.</li><li>The four corners (0, 2, 8, 10) are one group of 4. Very easy to miss.</li><li>Some functions have two equally small answers. If yours has the same number of terms and literals and covers every 1, it is also correct.</li><li>For POS, group the 0s and write each group as a sum term, then AND them.</li></ul>
+<p>GTU Hero has the Winter 2025 Digital Fundamentals (3130704) paper page: 70 marks, 25 questions extracted, with links to the Winter 2024 and Winter 2022 papers and the new scheme code BE03000071. Open it on <a href="https://gtuhero.com/gtu-papers/gujarat-technological-university-3130704-digital-fundamentals-winter-2025">GTU Hero</a> (GTU Hero is my project). Source and tests: <a href="https://github.com/PrinceAdvant/gtu-df-kmap-minimizer">github.com/PrinceAdvant/gtu-df-kmap-minimizer</a>.</p>
+<script src="calc.js"></script>
+<script>
+function go(){
+  let out;
+  try {
+    const n = +document.getElementById('n').value;
+    const m = F.parseList(document.getElementById('m').value, n, 'Minterms'), d = F.parseList(document.getElementById('d').value, n, "Don't cares");
+    const r = F.minimize(n, m, d), L = F.layout(n), names = 'ABCD'.slice(0, n);
+    const g = b => (x => b === 0 ? '' : x.toString(2).padStart(b, '0'));
+    out = 'Map (rows ' + (names.slice(0, L.rb) || '-') + ', columns ' + names.slice(L.rb) + '):\n      ' + L.cols.map(g(L.cb)).map(s => s.padEnd(4)).join('') + '\n';
+    for (const row of L.rows) out += (g(L.rb)(row) || '  ').padEnd(6) + L.cols.map(c => { const k = L.cell(row, c); return (m.includes(k) ? '1' : d.includes(k) ? 'x' : '0').padEnd(4); }).join('') + '\n';
+    out += '\nPrime implicants: ' + (r.primes || []).map(p => F.literal(p.bits, names) + ' (' + p.terms.join(',') + ')').join(', ');
+    out += '\nEssential: ' + ((r.essential || []).map(p => F.literal(p.bits, names)).join(', ') || 'none');
+    out += '\n\nMinimal SOP: F = ' + r.sop;
+  } catch (err) { out = 'Check your input: ' + err.message; }
+  document.getElementById('out').textContent = out;
+}
+go();
+</script>
+</body></html>
